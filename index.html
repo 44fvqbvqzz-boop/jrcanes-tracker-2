@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jr Canes On-Ice Tracker</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-database-compat.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIKL3s9Yf5_ASfJXUrMOw6RQb8P-nXi5w",
+            authDomain: "jrcanes-tracker.firebaseapp.com",
+            databaseURL: "https://jrcanes-tracker-default-rtdb.firebaseio.com",
+            projectId: "jrcanes-tracker",
+            storageBucket: "jrcanes-tracker.firebasestorage.app",
+            messagingSenderId: "292243254084",
+            appId: "1:292243254084:web:424ead1800927176cb4511"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const onIceRef = database.ref('jrcanes/onIce');
+
+        const players = [
+            { name: 'Wilson', number: 24 },
+            { name: 'Chorin', number: 17 },
+            { name: 'Taylor', number: 20 },
+            { name: 'Rieder', number: 9 },
+            { name: 'Roach', number: 91 },
+            { name: 'Jones', number: 27 },
+            { name: 'Smith', number: 11 },
+            { name: 'Zhang', number: 87 },
+            { name: 'Skehan', number: 88 },
+            { name: 'Welte', number: 16 },
+            { name: 'Fisher', number: 31 },
+            { name: 'Rossi', number: 98 }
+        ].sort((a, b) => a.number - b.number);
+
+        function HockeyRosterTracker() {
+            const [mode, setMode] = useState('control');
+            const [onIce, setOnIce] = useState([]);
+            const [clickCooldown, setClickCooldown] = useState(false);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                // Listen for real-time updates from Firebase
+                const listener = onIceRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    setOnIce(data || []);
+                    setLoading(false);
+                });
+
+                // Cleanup listener on unmount
+                return () => {
+                    onIceRef.off('value', listener);
+                };
+            }, []);
+
+            const togglePlayer = (playerNumber) => {
+                if (clickCooldown) return;
+                
+                setClickCooldown(true);
+                setTimeout(() => setClickCooldown(false), 300);
+                
+                const newOnIce = onIce.includes(playerNumber)
+                    ? onIce.filter(n => n !== playerNumber)
+                    : [...onIce, playerNumber];
+                
+                // Update Firebase (which will trigger the listener and update state)
+                onIceRef.set(newOnIce);
+            };
+
+            const clearAll = () => {
+                onIceRef.set([]);
+            };
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                        <div className="text-white text-xl">Loading...</div>
+                    </div>
+                );
+            }
+
+            if (mode === 'display') {
+                const onIcePlayers = players.filter(p => onIce.includes(p.number)).sort((a, b) => a.number - b.number);
+                
+                return (
+                    <div className="min-h-screen bg-transparent p-4">
+                        <div className="inline-block">
+                            <div className="bg-black bg-opacity-90 rounded-lg border-4 border-red-600 overflow-hidden">
+                                <div className="bg-red-600 px-6 py-2">
+                                    <h2 className="text-white font-bold text-xl text-center tracking-wide">
+                                        JR CANES ON ICE
+                                    </h2>
+                                </div>
+                                <div className="px-4 py-3">
+                                    {onIcePlayers.length === 0 ? (
+                                        <div className="text-gray-400 text-center py-2 text-base px-4">
+                                            No players on ice
+                                        </div>
+                                    ) : (
+                                        <div className="flex gap-2">
+                                            {onIcePlayers.map(player => (
+                                                <div
+                                                    key={player.number}
+                                                    className="bg-red-600 text-white font-bold text-3xl px-5 py-2 rounded shadow-lg"
+                                                >
+                                                    {player.number}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setMode('control')}
+                            className="mt-4 bg-gray-700 text-white px-4 py-2 rounded text-sm"
+                        >
+                            Switch to Control Mode
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-900 p-4">
+                    <div className="max-w-2xl mx-auto">
+                        <div className="bg-black rounded-lg border-4 border-red-600 p-6 mb-4">
+                            <h1 className="text-white font-bold text-3xl text-center mb-2">
+                                JR CANES
+                            </h1>
+                            <p className="text-gray-300 text-center mb-4">
+                                Tap players to toggle on/off ice
+                            </p>
+                            <div className="text-center mb-6">
+                                <span className="text-white font-semibold text-lg">
+                                    On Ice: {onIce.length}
+                                </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+                                {players.map(player => {
+                                    const isOnIce = onIce.includes(player.number);
+                                    return (
+                                        <button
+                                            key={player.number}
+                                            onClick={() => togglePlayer(player.number)}
+                                            disabled={clickCooldown}
+                                            className={`p-4 rounded-lg font-bold text-lg transition-all ${
+                                                isOnIce
+                                                    ? 'bg-red-600 text-white shadow-lg scale-105'
+                                                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                                            } ${clickCooldown ? 'opacity-75' : ''}`}
+                                        >
+                                            <div className="text-2xl mb-1">{player.number}</div>
+                                            <div className="text-sm">{player.name}</div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            
+                            <button
+                                onClick={clearAll}
+                                className="w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-lg"
+                            >
+                                Clear All
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={() => setMode('display')}
+                            className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg mb-4"
+                        >
+                            Switch to Display Mode (for OBS)
+                        </button>
+
+                        <div className="bg-gray-800 rounded-lg p-4 text-gray-300 text-sm">
+                            <h3 className="font-bold text-white mb-2">Instructions:</h3>
+                            <ul className="space-y-2">
+                                <li>• <strong>Control Mode:</strong> Use this on iPad/iPhone to select players</li>
+                                <li>• <strong>Display Mode:</strong> Add this page as Browser Source in OBS</li>
+                                <li>• Changes sync instantly across all devices in real-time</li>
+                                <li>• Multiple people can control at the same time</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<HockeyRosterTracker />, document.getElementById('root'));
+    </script>
+</body>
+</html>
