@@ -34,20 +34,25 @@
         const database = firebase.database();
         const onIceRef = database.ref('jrcanes/onIce');
 
-        const players = [
-            { name: 'Wilson', number: 24 },
-            { name: 'Chorin', number: 17 },
-            { name: 'Taylor', number: 20 },
+        const defensemen = [
             { name: 'Rieder', number: 9 },
-            { name: 'Roach', number: 91 },
-            { name: 'Jones', number: 27 },
+            { name: 'Taylor', number: 20 },
+            { name: 'Wilson', number: 24 },
+            { name: 'Jones', number: 27 }
+        ];
+
+        const forwards = [
             { name: 'Smith', number: 11 },
+            { name: 'Welte', number: 16 },
+            { name: 'Chorin', number: 17 },
+            { name: 'Fisher', number: 31 },
             { name: 'Zhang', number: 87 },
             { name: 'Skehan', number: 88 },
-            { name: 'Welte', number: 16 },
-            { name: 'Fisher', number: 31 },
+            { name: 'Roach', number: 91 },
             { name: 'Rossi', number: 98 }
-        ].sort((a, b) => a.number - b.number);
+        ];
+
+        const players = [...defensemen, ...forwards];
 
         function HockeyRosterTracker() {
             const [mode, setMode] = useState('control');
@@ -153,25 +158,50 @@
                                 </span>
                             </div>
                             
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-                                {players.map(player => {
-                                    const isOnIce = onIce.includes(player.number);
-                                    return (
-                                        <button
-                                            key={player.number}
-                                            onClick={() => togglePlayer(player.number)}
-                                            disabled={clickCooldown}
-                                            className={`p-4 rounded-lg font-bold text-lg transition-all ${
-                                                isOnIce
-                                                    ? 'bg-red-600 text-white shadow-lg scale-105'
-                                                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                                            } ${clickCooldown ? 'opacity-75' : ''}`}
-                                        >
-                                            <div className="text-2xl mb-1">{player.number}</div>
-                                            <div className="text-sm">{player.name}</div>
-                                        </button>
-                                    );
-                                })}
+                            <div className="mb-6">
+                                <h3 className="text-red-600 font-bold text-xl mb-3">DEFENSE</h3>
+                                <div className="grid grid-cols-2 gap-3 mb-6">
+                                    {defensemen.map(player => {
+                                        const isOnIce = onIce.includes(player.number);
+                                        return (
+                                            <button
+                                                key={player.number}
+                                                onClick={() => togglePlayer(player.number)}
+                                                disabled={clickCooldown}
+                                                className={`p-4 rounded-lg font-bold text-lg transition-all ${
+                                                    isOnIce
+                                                        ? 'bg-red-600 text-white shadow-lg scale-105'
+                                                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                                                } ${clickCooldown ? 'opacity-75' : ''}`}
+                                            >
+                                                <div className="text-2xl mb-1">{player.number}</div>
+                                                <div className="text-sm">{player.name}</div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <h3 className="text-red-600 font-bold text-xl mb-3">FORWARDS</h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    {forwards.map(player => {
+                                        const isOnIce = onIce.includes(player.number);
+                                        return (
+                                            <button
+                                                key={player.number}
+                                                onClick={() => togglePlayer(player.number)}
+                                                disabled={clickCooldown}
+                                                className={`p-4 rounded-lg font-bold text-lg transition-all ${
+                                                    isOnIce
+                                                        ? 'bg-red-600 text-white shadow-lg scale-105'
+                                                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                                                } ${clickCooldown ? 'opacity-75' : ''}`}
+                                            >
+                                                <div className="text-2xl mb-1">{player.number}</div>
+                                                <div className="text-sm">{player.name}</div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                             
                             <button
