@@ -55,7 +55,11 @@
         const players = [...defensemen, ...forwards];
 
         function HockeyRosterTracker() {
-            const [mode, setMode] = useState('control');
+            const [mode, setMode] = useState(() => {
+                // Load saved mode from localStorage, default to 'control'
+                const savedMode = localStorage.getItem('jrcanes-display-mode');
+                return savedMode || 'control';
+            });
             const [onIce, setOnIce] = useState([]);
             const [clickCooldown, setClickCooldown] = useState(false);
             const [loading, setLoading] = useState(true);
@@ -73,6 +77,11 @@
                     onIceRef.off('value', listener);
                 };
             }, []);
+
+            const switchMode = (newMode) => {
+                setMode(newMode);
+                localStorage.setItem('jrcanes-display-mode', newMode);
+            };
 
             const togglePlayer = (playerNumber) => {
                 if (clickCooldown) return;
@@ -213,7 +222,7 @@
                         </div>
 
                         <button
-                            onClick={() => setMode('display')}
+                            onClick={() => switchMode('display')}
                             className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg mb-4"
                         >
                             Switch to Display Mode (for OBS)
